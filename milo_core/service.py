@@ -714,7 +714,12 @@ class WarframeService:
     async def riven_analyse(self, raw_text: str) -> Card:
         """Compute local pure-Python Riven stat intervals and median deviation."""
         cleaned = raw_text.strip()
-        if not cleaned:
+        lowered = cleaned.casefold()
+        if (
+            not cleaned
+            or lowered in {"ocr", "识图", "截图", "图片", "识别"}
+            or "[cq:image" in lowered
+        ):
             return build_riven_analyse_help_card()
         warnings: list[str] = []
         weapons, trends, aliases = await asyncio.gather(

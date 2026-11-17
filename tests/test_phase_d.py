@@ -280,7 +280,9 @@ def test_riven_analyse_math_and_zero_ocr_dependency() -> None:
     assert "近战" in melee_card.highlight
     assert len(melee_card.rows) == 2
 
-    assert build_riven_analyse_help_card().kind == "riven_analyse_help"
+    help_card = build_riven_analyse_help_card()
+    assert help_card.kind == "riven_analyse_help"
+    assert "暂未实现 OCR" in help_card.text()
     with pytest.raises(QueryError):
         build_riven_analyse_card("托里德 -40% 暴击几率 +180% 暴击几率", weapons, trends, {})
 

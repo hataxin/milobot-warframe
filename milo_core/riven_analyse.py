@@ -1,4 +1,4 @@
-"""Local pure-Python Riven disposition & stat range calculation (no OCR dependency)."""
+"""Local pure-Python Riven disposition & stat range calculation (OCR not yet implemented)."""
 
 from __future__ import annotations
 
@@ -336,6 +336,11 @@ def build_riven_analyse_help_card() -> Card:
         "紫卡倾向分析帮助",
         [
             (
+                "功能状态",
+                "暂未实现 OCR 识图功能",
+                "当前不支持紫卡截图识别，请使用下方纯文本格式输入",
+            ),
+            (
                 "单行格式",
                 "/紫卡分析 托里德 +180% 暴击几率 +140% 暴击伤害 -45% 变焦",
                 "空格分隔武器与 2~4 条属性",
@@ -347,7 +352,8 @@ def build_riven_analyse_help_card() -> Card:
             ),
             ("多行粘贴", "/紫卡分析 武器名 后直接换行粘贴词条", "支持 +数值% 与 x1.x 歧视写法"),
         ],
-        "国际服 PC · 纯本地数学推算，无需截图或 OCR",
+        "国际服 PC · 暂未实现 OCR 图片识别，当前支持纯文本本地数学推算",
         columns=("方式", "示例指令", "说明"),
         kind="riven_analyse_help",
+        highlight="暂未实现 OCR 识图功能，当前仅支持纯文本参数输入分析",
     )

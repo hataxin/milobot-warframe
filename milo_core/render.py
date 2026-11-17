@@ -240,7 +240,7 @@ _FOOTER_NOTES: dict[str, str] = {
     "riven": "仅展示在线玩家的 PC/跨平台紫卡拍卖 · 2 分钟内可用 /w 序号 获取私聊语句",
     "lich_sister": "仅展示在线玩家的 PC/跨平台玄骸拍卖 · 2 分钟内可用 /w 序号 获取私聊语句",
     "riven_analyse": "数值区间与中位差按官方武器倾向（Omega）计算",
-    "riven_analyse_help": "纯本地文本倾向分析，无需上传截图或 OCR 模型",
+    "riven_analyse_help": "暂未实现 OCR 图片识别功能，当前仅支持纯文本词条倾向分析",
 }
 
 
