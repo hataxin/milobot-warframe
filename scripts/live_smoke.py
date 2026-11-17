@@ -99,7 +99,7 @@ async def main() -> None:
     replies: list[dict[str, Any]] = []
 
     async def capture(method: str, plugin_id: str, payload: dict[str, Any] | None) -> Any:
-        assert method == "cap.call" and plugin_id == "local.milobot-warframe"
+        assert method == "cap.call" and plugin_id == "github.hataxin.milobot-warframe"
         assert payload is not None
         args = payload["args"]
         if payload["capability"] == "send.image":
@@ -115,7 +115,9 @@ async def main() -> None:
     plugin.set_plugin_config({})
     plugin._set_context(
         PluginContext(
-            "local.milobot-warframe", capture, PluginPaths(OUTPUT / "data", OUTPUT / "temp")
+            "github.hataxin.milobot-warframe",
+            capture,
+            PluginPaths(OUTPUT / "data", OUTPUT / "temp"),
         )
     )
     await plugin.on_load()

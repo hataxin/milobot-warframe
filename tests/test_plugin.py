@@ -480,7 +480,9 @@ def _make_failing_plugin(
     plugin.set_plugin_config(text_cfg)
     plugin._set_context(
         PluginContext(
-            "local.milobot-warframe", rpc, PluginPaths(tmp_path / "data", tmp_path / "temp")
+            "github.hataxin.milobot-warframe",
+            rpc,
+            PluginPaths(tmp_path / "data", tmp_path / "temp"),
         )
     )
     return plugin

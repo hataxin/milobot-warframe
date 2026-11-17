@@ -17,7 +17,7 @@
 ## 专项验证覆盖
 
 - **品牌统一与包结构（`milo_core/`、`_manifest.json`）**：
-  - 插件名设定为 `Milo bot · Warframe 助手`（`local.milobot-warframe`），核心包为 `milo_core`，卡片左下角页脚渲染为 `Warframe × Milo bot`，SQLite 数据库为 `milobot.sqlite3`。
+  - 插件名设定为 `Milo bot · Warframe 助手`（`github.hataxin.milobot-warframe`），核心包为 `milo_core`，卡片左下角页脚渲染为 `Warframe × Milo bot`，SQLite 数据库为 `milobot.sqlite3`。
   - 全部面向用户的图文输出、帮助菜单、状态文本、错误提示与 SDK `@Command` 注册名（`wf_dispatch`、`wf_market`、`wf_riven`、`wf_lich`、`wf_sister`、`wf_whisper`）均保持统一。
 - **通用命令标志与分页（`milo_core/command_flags.py`）**：
   - 校验 `-1`/`-w`/`--text` 强制纯文本回复、`/wm` 支持 `-en` 英文输出、`-2`/`-3` 翻页及 `page_caption`，并保留 `MK1-Braton` 连字符武器名与 `/紫卡分析` 中的负数值（如 `-2`）。

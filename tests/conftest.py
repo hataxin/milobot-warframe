@@ -50,7 +50,7 @@ async def loaded_plugin(
         method: str, plugin_id: str, payload: dict[str, Any] | None, **kwargs: Any
     ) -> Any:
         del kwargs
-        assert method == "cap.call" and plugin_id == "local.milobot-warframe"
+        assert method == "cap.call" and plugin_id == "github.hataxin.milobot-warframe"
         assert payload is not None
         calls.append(payload)
         return {"success": True}
@@ -59,7 +59,9 @@ async def loaded_plugin(
     plugin.set_plugin_config({})
     plugin._set_context(
         PluginContext(
-            "local.milobot-warframe", rpc, PluginPaths(tmp_path / "data", tmp_path / "temp")
+            "github.hataxin.milobot-warframe",
+            rpc,
+            PluginPaths(tmp_path / "data", tmp_path / "temp"),
         )
     )
     await plugin.on_load()

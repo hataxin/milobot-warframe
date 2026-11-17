@@ -51,7 +51,7 @@ def main() -> None:
     with ZipFile(destination) as archive:
         assert archive.testzip() is None
         manifest = json.loads(archive.read("milobot_warframe/_manifest.json"))
-        assert manifest["id"] == "local.milobot-warframe"
+        assert manifest["id"] == "github.hataxin.milobot-warframe"
     print(f"Packaged {len(files)} files: {destination} ({destination.stat().st_size} bytes)")
 
 

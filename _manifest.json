@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "id": "local.milobot-warframe",
+  "id": "github.hataxin.milobot-warframe",
   "version": "1.0.0",
   "name": "Milo bot · Warframe 助手",
   "description": "面向 MaiBot（麦麦）的《星际战甲》（Warframe）国际服 PC 助手插件，为麦麦提供世界状态与时效总览图文卡片、科研/瓦奇娅/仲裁/开核桃、中英翻译与紫卡/玄骸效率工具、warframe.market 与拍卖行查价、私聊指令生成、事件订阅推送及个人铸造提醒能力（同时支持 / 指令与 @Tool 自然语言调用）。",
