@@ -12,6 +12,7 @@ ROOT_FILES = (
     "_manifest.json",
     "README.md",
     "NOTICE.md",
+    "CHANGELOG.md",
     "ASSET-SOURCES.md",
     "LICENSE",
     "VALIDATION.md",

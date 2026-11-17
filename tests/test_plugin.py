@@ -773,3 +773,41 @@ async def test_phase_d_candidates_and_whispers_isolated_e2e(
         matched_groups={"arg": "1"}, stream_id="s1", user_id="u2"
     )
     assert not ok_u2 and "当前没有可用的私聊记录" in calls[-1]["args"]["text"]
+
+
+def test_manifest_and_config_schema_follow_maibot_spec() -> None:
+    import json
+    import pathlib
+
+    from milo_core.sdk_plugin import MiloBotPlugin
+
+    root = pathlib.Path(__file__).resolve().parents[1]
+    manifest = json.loads((root / "_manifest.json").read_text(encoding="utf-8"))
+    required = {
+        "manifest_version",
+        "id",
+        "version",
+        "name",
+        "description",
+        "author",
+        "license",
+        "urls",
+        "host_application",
+        "sdk",
+        "capabilities",
+        "i18n",
+    }
+    assert required.issubset(manifest)
+    assert manifest["manifest_version"] == 2
+    assert manifest["plugin_type"] == "tool"
+    assert (root / manifest["changelog"]).is_file()
+    dep_names = {d["name"] for d in manifest["dependencies"] if d["type"] == "python_package"}
+    assert {"httpx", "pillow"}.issubset(dep_names)
+
+    schema = MiloBotPlugin.build_config_schema(
+        plugin_id=manifest["id"],
+        plugin_name=manifest["name"],
+        plugin_version=manifest["version"],
+    )
+    assert schema["sections"]["plugin"]["title"] == "插件版本"
+    assert schema["sections"]["general"]["fields"]["font_path"]["placeholder"]

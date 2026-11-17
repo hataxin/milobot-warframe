@@ -1,7 +1,12 @@
 # Milo bot · Warframe 助手
 
-当前版本：**1.0.0（正式版）**。联调目标为插件 SDK **2.21.0**、Python **3.12**。
-面向 Milo bot 的原生 Python 实现；单插件部署，不需要启动其他机器人后端。
+本仓库是一个原生 **MaiBot（麦麦）插件**（当前版本 **1.0.0**，适配 SDK **2.21.0** / Python **3.12**），用于为麦麦提供《星际战甲》（Warframe）国际服 PC 的全量游戏助手能力：
+
+- **为麦麦提供双通道交互**：同时暴露 `@Command` 聊天 `/` 斜杠指令与 `@Tool`（`warframe_world_query`、`warframe_market_query`），既可由群聊/私聊直接触发，也可由麦麦在自然语言对话中自主调用。
+- **游戏情报与实时行情**：覆盖世界状态、时效总览、平原/双衍王境周期、瓦奇娅、深层/时光科研、仲裁前瞻、开核桃期望、中英互译、融合/Mod 升级计算、warframe.market 实时查价、杜卡德垃圾排行、紫卡/玄骸/姐妹拍卖筛选、游戏内私聊语句生成，以及紫卡倾向纯文本数学分析。
+- **独立持久化与主动推送**：基于 MaiBot Runner 专属 `ctx.paths.data_dir` 管理按会话隔离的事件定时订阅与个人本地铸造到期提醒，并内置「相变临界」主题图文卡片渲染与 MiSans 字体。
+
+单插件部署即可运行，无需额外启动外部机器人后端。
 
 ## 已实现
 
@@ -52,10 +57,23 @@
 
 ## 安装
 
-1. 解压，把完整的 `milobot_warframe` 文件夹放进宿主 `plugins` 目录。`_manifest.json` 和 `plugin.py` 必须直接位于这个文件夹下，避免多套一层目录。
-2. 确认宿主 Python 环境已包含 SDK 2.21.0、httpx 0.28.1、Pillow 13.0.0。
-3. 重载或重启插件后，确认日志出现 `Milo bot Warframe 插件 1.0.0 已加载`。
+1. 解压或克隆本仓库，把完整的插件文件夹放进 MaiBot 宿主的 `plugins/` 目录（确保 `_manifest.json` 和 `plugin.py` 直接位于该插件目录下，避免多套一层目录）。
+2. `_manifest.json` 已声明 `dependencies`（`httpx>=0.28.1`、`pillow>=13.0.0`），MaiBot Host 会在加载前自动校验或安装缺失的 Python 依赖；手动环境请确认已包含 `maibot-plugin-sdk==2.21.0`、`httpx==0.28.1`、`pillow==13.0.0`。
+3. 在 MaiBot WebUI 重载或重启插件后，确认日志出现 `Milo bot Warframe 插件 1.0.0 已加载`，且 WebUI 插件页显示为已加载状态。
 4. 在实际聊天中可依次输入 `/帮助`、`/状态`、`/时效`、`/裂缝 捕获`、`/科研`、`/翻译 Volt`、`/融合 38.5 60`、`/开核桃`、`/铜垃圾`、`/铸造提醒 Forma 23h`、`/wm 电男`、`/wr 托里德 爆率,爆伤 无`、`/w 1`、`/紫卡分析 托里德 +180% 暴击几率 +140% 暴击伤害` 及自然语言提问验收。
+
+## 目录结构
+
+```text
+milobot/
+├── _manifest.json     # Manifest v2 元信息、版本兼容区间、依赖与能力声明
+├── plugin.py          # 插件入口（导出 create_plugin()）
+├── milo_core/         # 业务模块、Config 模型与图文渲染引擎
+├── assets/            # 卡片背景纹理与内置 MiSans 字体
+├── CHANGELOG.md       # 版本更新日志
+├── LICENSE            # AGPL-3.0 开源协议
+└── NOTICE.md          # 第三方数据源与素材署名说明
+```
 
 典型插件安装目录示例（按你的宿主实际安装路径为准）：
 

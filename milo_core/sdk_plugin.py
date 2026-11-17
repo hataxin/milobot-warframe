@@ -10,7 +10,13 @@ from dataclasses import dataclass
 from typing import Any, ClassVar, Literal, cast, override
 
 import httpx
-from maibot_sdk import Command, MaiBotPlugin, PluginConfigBase, Tool
+from maibot_sdk import (
+    CONFIG_RELOAD_SCOPE_SELF,
+    Command,
+    MaiBotPlugin,
+    PluginConfigBase,
+    Tool,
+)
 from maibot_sdk.types import ToolParameterInfo, ToolParamType
 
 from .auctions import RivenQuery, extract_candidate_choice, parse_riven_query
@@ -194,7 +200,7 @@ class MiloBotPlugin(MaiBotPlugin):
     @override
     async def on_config_update(self, scope: str, config_data: dict[str, Any], version: str) -> None:
         """Apply plugin settings by replacing only owned resources."""
-        if scope == "self":
+        if scope == CONFIG_RELOAD_SCOPE_SELF:
             self.set_plugin_config(config_data)
             await self.on_unload()
             await self.on_load()
