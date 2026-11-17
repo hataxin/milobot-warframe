@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import re
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -64,7 +63,6 @@ from .relics import (
     is_tier_only,
     search_relics,
 )
-from .riven_analyse import build_riven_analyse_card, build_riven_analyse_help_card
 from .subscription import (
     DetectedEvent,
     PendingNotification,
@@ -239,11 +237,6 @@ WORLD_CARD_ROUTES: dict[str, Callable[[WarframeService], Awaitable[Card]]] = {
     "开核桃": lambda s: s.relic_value(""),
 }
 
-_RIVEN_ANALYSE_PREFIX_RE = re.compile(
-    r"^(?:紫卡分析|分析紫卡|wfen(?=\s|$)|rivenanalyse(?=\s|$))",
-    re.IGNORECASE,
-)
-
 
 def _extract_prefixed_args(raw_args: str, prefixes: tuple[str, ...]) -> str | None:
     cleaned = raw_args.strip()
@@ -261,15 +254,6 @@ def _extract_prefixed_args(raw_args: str, prefixes: tuple[str, ...]) -> str | No
 def extract_relic_keyword(raw_args: str) -> str | None:
     """Extract relic lookup keyword if raw_args addresses relics/核桃."""
     return _extract_prefixed_args(raw_args, ("遗物", "核桃", "relic", "relics"))
-
-
-def extract_riven_analyse_input(raw_args: str) -> str | None:
-    """Extract text body if raw_args invokes local Riven disposition analysis."""
-    cleaned = raw_args.strip()
-    match = _RIVEN_ANALYSE_PREFIX_RE.match(cleaned)
-    if match is None:
-        return None
-    return cleaned[match.end() :].strip()
 
 
 def _candidate_card(cmd: str, subject: str, matches: list[Item]) -> Card:
@@ -543,8 +527,6 @@ class WarframeService:
             return card
         if (relic_kw := extract_relic_keyword(raw)) is not None:
             return await self.relics(relic_kw)
-        if (analyse_input := extract_riven_analyse_input(raw)) is not None:
-            return await self.riven_analyse(analyse_input)
         key = "".join(raw.split()).casefold()
         if key in {"瓦奇娅", "圣装重生", "重生", "varzia"}:
             return await self.varzia(page=page)
@@ -710,24 +692,6 @@ class WarframeService:
         cached = await self._auction_search(f"market:{kind}:{selected.slug}", params)
         meta = QueryMeta(time.time(), cached.fetched_at, warnings)
         return build_lich_sister_card(kind, selected, cached.body, meta, page=page)
-
-    async def riven_analyse(self, raw_text: str) -> Card:
-        """Compute local pure-Python Riven stat intervals and median deviation."""
-        cleaned = raw_text.strip()
-        lowered = cleaned.casefold()
-        if (
-            not cleaned
-            or lowered in {"ocr", "识图", "截图", "图片", "识别"}
-            or "[cq:image" in lowered
-        ):
-            return build_riven_analyse_help_card()
-        warnings: list[str] = []
-        weapons, trends, aliases = await asyncio.gather(
-            self.dicts.weapons_meta(),
-            self.dicts.riven_analyse_trends(),
-            self._aliases(warnings),
-        )
-        return build_riven_analyse_card(cleaned, weapons, trends, aliases)
 
     async def relics(self, keyword: str) -> Card:
         """Search Void Relics by relic code, alias, or reward name."""

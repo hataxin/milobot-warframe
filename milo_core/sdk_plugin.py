@@ -44,7 +44,7 @@ from .subscription import (
 from .whisper import WhisperStore
 from .worldstate import build_help_card
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 
 def _build_direct_command_pattern() -> str:
@@ -303,14 +303,11 @@ class MiloBotPlugin(MaiBotPlugin):
     async def _dispatch_wf(
         self, service: WarframeService, raw_args: str, stream_id: str, user_id: str
     ) -> tuple[bool, str, int]:
-        allow_page = (
-            not raw_args.lstrip()
-            .casefold()
-            .startswith(("紫卡分析", "分析紫卡", "wfen", "rivenanalyse"))
-        )
-        flags = parse_command_flags(raw_args, allow_page=allow_page)
+        flags = parse_command_flags(raw_args)
         cleaned = flags.cleaned
         key = "".join(cleaned.split()).casefold()
+        if cleaned.casefold().startswith(("紫卡分析", "分析紫卡", "wfen", "rivenanalyse")):
+            return await self._send_text("暂未添加紫卡分析功能。", stream_id)
         if key in {"状态", "status"}:
             return await self._send_text(await self._status_text(service, stream_id), stream_id)
         sub_reply = await self._maybe_subscription_command(cleaned, stream_id, user_id)
@@ -454,15 +451,14 @@ class MiloBotPlugin(MaiBotPlugin):
             "查询 Warframe 国际服 PC 的世界状态、时效总览、开放世界平原周期、双衍王境轮换、突击、"
             "执刑官猎杀、裂隙、警报、入侵、虚空商人、瓦奇娅圣装重生、每周科研、官方新闻、"
             "钢铁之路、午夜电波、每日特惠、1999 日历、三大平原赏金、仲裁、虚空遗物与开核桃推荐、"
-            "中英翻译、融合步数计算、Mod升级消耗、杜卡德金银铜垃圾、"
-            "紫卡倾向分析（暂未实现 OCR，需传入武器与纯文本词条）及个人铸造提醒。"
+            "中英翻译、融合步数计算、Mod升级消耗、杜卡德金银铜垃圾及个人铸造提醒。"
         ),
         brief_description="查询 Warframe 国际服 PC 世界状态、实用工具计算、遗物开核桃与铸造提醒",
         detailed_description=(
             "只返回文本数据，不直接向群聊发送图片。"
             "支持常见中文主题词；遗物传 topic='遗物' 搭配 keyword；"
             "开核桃传 topic='开核桃' 搭配 keyword='速刷|全部 白金|奸商'；"
-            "翻译/融合/升级消耗/紫卡分析/铸造提醒/取消铸造均传对应 topic 搭配 keyword。"
+            "翻译/融合/升级消耗/铸造提醒/取消铸造均传对应 topic 搭配 keyword。"
         ),
         parameters=[
             ToolParameterInfo(
@@ -472,7 +468,7 @@ class MiloBotPlugin(MaiBotPlugin):
                     "要查询的主题，可选如：时效、平原、轮换、双衍王境、警报、裂缝、钢铁裂缝、九重天裂缝、"
                     "突击、猎杀、入侵、奸商、瓦奇娅、科研、新闻、钢铁、电波、每日特惠、1999、"
                     "地球赏金、金星赏金、火卫二赏金、仲裁、仲裁表、遗物、开核桃、翻译、融合、升级消耗、"
-                    "金垃圾、银垃圾、铜垃圾、紫卡分析、铸造提醒、铸造列表、取消铸造、状态"
+                    "金垃圾、银垃圾、铜垃圾、铸造提醒、铸造列表、取消铸造、状态"
                 ),
                 required=True,
             ),
@@ -481,7 +477,7 @@ class MiloBotPlugin(MaiBotPlugin):
                 param_type=ToolParamType.STRING,
                 description=(
                     "可选参数/关键词；例如 裂缝筛选词、遗物编号、翻译词条、融合百分比、"
-                    "开核桃参数、紫卡分析词条或铸造提醒“物品名 时长”"
+                    "开核桃参数或铸造提醒“物品名 时长”"
                 ),
                 required=False,
             ),
@@ -501,6 +497,8 @@ class MiloBotPlugin(MaiBotPlugin):
             flags = parse_command_flags(keyword)
             cleaned_kw = flags.cleaned
             key = "".join(topic.split()).casefold()
+            if key in {"紫卡分析", "分析紫卡", "wfen", "rivenanalyse"}:
+                return {"name": "warframe_world_query", "content": "暂未添加紫卡分析功能。"}
             if key in {"状态", "status"} and not cleaned_kw:
                 return {
                     "name": "warframe_world_query",
@@ -517,7 +515,7 @@ class MiloBotPlugin(MaiBotPlugin):
                         f"暂不支持主题“{topic}”。可用主题：时效、平原、轮换、警报、裂缝、钢铁裂缝、"
                         "九重天裂缝、突击、猎杀、入侵、奸商、瓦奇娅、科研、新闻、钢铁、电波、"
                         "每日特惠、1999、三大赏金、仲裁、仲裁表、遗物、开核桃、翻译、融合、"
-                        "升级消耗、金/银/铜垃圾、紫卡分析、铸造提醒。"
+                        "升级消耗、金/银/铜垃圾、铸造提醒。"
                     ),
                 }
             return {"name": "warframe_world_query", "content": card.text()}

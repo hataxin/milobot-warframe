@@ -11,9 +11,158 @@ from .command_flags import page_caption, paginate
 from .dictionary import RivenStatInfo, RivenTrendEntry, WeaponMeta
 from .errors import QueryError
 from .market import Item, normalize
-from .riven_analyse import compute_diff, compute_low_high, lookup_trend_optional, select_base_value
 from .whisper import WhisperEntry, element_label, lich_whisper, riven_whisper
 from .worldstate import QueryMeta, subtitle
+
+_TREND_KEYWORDS: tuple[tuple[str, str], ...] = (
+    ("射速", "射速/攻击速度"),
+    ("攻速", "射速/攻击速度"),
+    ("攻击速度", "射速/攻击速度"),
+    ("后坐力", "后坐力"),
+    ("后座力", "后坐力"),
+    ("后座", "后坐力"),
+    ("infested", "对Infested伤害"),
+    ("corpus", "对Corpus伤害"),
+    ("grineer", "对Grineer伤害"),
+    ("grinner", "对Grineer伤害"),
+    ("orokin", "对Orokin伤害"),
+    ("炽蛇军", "对炽蛇军伤害"),
+    ("科腐者", "对科腐者伤害"),
+    ("滑行", "滑行攻击暴击几率"),
+    ("弱点暴击", "弱点暴击几率"),
+    ("弱点伤害", "弱点伤害"),
+    ("暴击几率", "暴击几率"),
+    ("暴击率", "暴击几率"),
+    ("爆率", "暴击几率"),
+    ("暴击伤害", "暴击伤害"),
+    ("爆伤", "暴击伤害"),
+    ("触发几率", "触发几率"),
+    ("触发时间", "触发时间"),
+    ("连击持续", "连击持续时间"),
+    ("秒连击", "连击持续时间"),
+    ("初始连击", "初始连击"),
+    ("几率不获得连击数", "几率不获得连击数"),
+    ("额外连击数", "额外连击数几率"),
+    ("连击数", "几率不获得连击数"),
+    ("冰冻", "冰冻伤害"),
+    ("毒素", "毒素伤害"),
+    ("电击", "电击伤害"),
+    ("火焰", "火焰伤害"),
+    ("冲击", "冲击伤害"),
+    ("切割", "切割伤害"),
+    ("穿刺", "穿刺伤害"),
+    ("爆炸", "爆炸伤害"),
+    ("腐蚀", "腐蚀伤害"),
+    ("毒气", "毒气伤害"),
+    ("磁力", "磁力伤害"),
+    ("辐射", "辐射伤害"),
+    ("病毒", "病毒伤害"),
+    ("异常状态伤害", "异常状态伤害"),
+    ("投射物", "投射物飞行速度"),
+    ("弹速", "投射物飞行速度"),
+    ("多重射击", "多重射击"),
+    ("多重", "多重射击"),
+    ("弹药最大值", "弹药最大值"),
+    ("弹药上限", "弹药最大值"),
+    ("弹药效率", "弹药效率"),
+    ("弹匣容量", "弹匣容量"),
+    ("弹匣", "弹匣容量"),
+    ("装填速度", "装填速度"),
+    ("装填", "装填速度"),
+    ("穿透", "穿透"),
+    ("攻击范围", "攻击范围"),
+    ("范围", "攻击范围"),
+    ("变焦", "变焦"),
+    ("重击效率", "重击效率"),
+    ("重击准备", "重击准备速度"),
+    ("重击伤害", "重击伤害"),
+    ("处决", "处决伤害"),
+    ("震地", "震地攻击伤害"),
+    ("格挡", "格挡角度"),
+    ("收起时自动装填", "收起时自动装填"),
+    ("基伤", "伤害/近战伤害"),
+    ("近战伤害", "伤害/近战伤害"),
+    ("伤害", "伤害/近战伤害"),
+)
+_DISCRIMINATION_KEYS = ("Infested", "Corpus", "Grineer", "Orokin", "炽蛇军", "科腐者")
+
+
+def compute_low_high(
+    base_val: float,
+    omega: float,
+    attr_count: int,
+    *,
+    has_curse: bool,
+    is_curse: bool,
+) -> tuple[float, float]:
+    """Compute official Warframe 0.9x..1.1x R8 stat bounds rounded to 4 decimals."""
+    if attr_count == 2:
+        factor = 0.99
+    elif attr_count == 3:
+        factor = (-0.495 if is_curse else 1.2375) if has_curse else 0.75
+    elif attr_count == 4:
+        factor = -0.75 if is_curse else 0.9375
+    else:
+        return 0.0, 0.0
+    return round(0.9 * base_val * omega * factor, 4), round(1.1 * base_val * omega * factor, 4)
+
+
+def compute_diff(
+    trend_name: str, value: float, bounds: tuple[float, float], *, is_mult: bool
+) -> str:
+    """Calculate signed percentage deviation from the theoretical midpoint."""
+    low, high = bounds
+    median = (low + high) / 2
+    if median == 0:
+        return "0.0%"
+    observed = value
+    if is_mult and any(key in trend_name for key in _DISCRIMINATION_KEYS):
+        abs_val = abs(value)
+        observed = (abs_val - 1) * 100 if abs_val > 1 else 100 - abs_val * 100
+    delta = abs(observed) - abs(median)
+    pct = round((abs(observed) - abs(median)) / abs(median) * 100, 2)
+    if delta > 0:
+        return f"+{abs(pct):.1f}%"
+    if delta == 0:
+        return "0.0%"
+    return f"-{abs(pct):.1f}%"
+
+
+def select_base_value(trend: RivenTrendEntry, weapon: WeaponMeta) -> float:
+    """Select base stat value matching the weapon's Riven category."""
+    desc = weapon.description
+    if weapon.product_category == "SentinelWeapons":
+        if "霰弹枪" in desc or "散弹枪" in desc:
+            return trend.shotgun
+        if "近战" in desc or "分离" in weapon.name:
+            return trend.melee
+        return trend.rifle
+    if "霰弹枪" in desc or "散弹枪" in desc:
+        return trend.shotgun
+    return {
+        "Pistols": trend.pistol,
+        "LongGuns": trend.rifle,
+        "Melee": trend.melee,
+        "SpaceGuns": trend.archwing,
+        "SpaceMelee": trend.archwing,
+        "Shotguns": trend.shotgun,
+    }.get(weapon.product_category, 0.0)
+
+
+def lookup_trend_optional(
+    stat_text: str, trends: dict[str, RivenTrendEntry]
+) -> tuple[str, RivenTrendEntry] | None:
+    """Resolve stat text against trend table without raising if unmatched."""
+    lowered = stat_text.strip().casefold()
+    for keyword, target in _TREND_KEYWORDS:
+        if keyword.casefold() in lowered and target in trends:
+            return target, trends[target]
+    stripped = stat_text.strip()
+    if stripped in trends:
+        entry = trends[stripped]
+        return entry.name, entry
+    return None
+
 
 _RIVEN_POLARITIES: dict[str, str] = {
     "madurai": "V槽",

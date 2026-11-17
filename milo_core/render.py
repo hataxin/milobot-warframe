@@ -52,8 +52,6 @@ _PROPORTIONS: dict[tuple[str, int], tuple[float, ...]] = {
     ("ducats", 5): (0.13, 0.37, 0.13, 0.16, 0.21),
     ("riven", 5): (0.06, 0.41, 0.16, 0.18, 0.19),
     ("lich_sister", 5): (0.08, 0.31, 0.19, 0.27, 0.15),
-    ("riven_analyse", 4): (0.22, 0.18, 0.41, 0.19),
-    ("riven_analyse_help", 3): (0.16, 0.48, 0.36),
     ("relic_value", 3): (0.22, 0.56, 0.22),
     ("translate", 3): (0.22, 0.39, 0.39),
     ("fusion", 3): (0.26, 0.24, 0.50),
@@ -89,8 +87,6 @@ _CENTER_COLS: dict[str, set[int]] = {
     "ducats": {0, 2, 3, 4},
     "riven": {0, 2, 3},
     "lich_sister": {0, 2, 4},
-    "riven_analyse": {1, 2, 3},
-    "riven_analyse_help": {0},
     "relic_value": {2},
     "translate": {0},
     "fusion": {0, 1},
@@ -121,8 +117,6 @@ _PILL_COLS: dict[str, set[int]] = {
     "ducats": {0},
     "riven": {0},
     "lich_sister": {0, 4},
-    "riven_analyse": {3},
-    "riven_analyse_help": {0},
     "translate": {0},
     "fusion": {0},
     "conquest": {0},
@@ -145,7 +139,6 @@ _NUMBER_COLS: dict[str, set[int]] = {
     "ducats": {3},
     "riven": {3},
     "lich_sister": {2},
-    "riven_analyse": {1},
     "relic_value": {2, 3},
     "fusion": {1},
     "varzia": {1},
@@ -239,8 +232,6 @@ _FOOTER_NOTES: dict[str, str] = {
     "ducats": "按加权均价性价比降序展示，支持 -页码 翻页与 /铜垃圾 筛选",
     "riven": "仅展示在线玩家的 PC/跨平台紫卡拍卖 · 2 分钟内可用 /w 序号 获取私聊语句",
     "lich_sister": "仅展示在线玩家的 PC/跨平台玄骸拍卖 · 2 分钟内可用 /w 序号 获取私聊语句",
-    "riven_analyse": "数值区间与中位差按官方武器倾向（Omega）计算",
-    "riven_analyse_help": "暂未实现 OCR 图片识别功能，当前仅支持纯文本词条倾向分析",
 }
 
 
@@ -258,7 +249,6 @@ class _Row:
     lines: list[list[str]]
     height: int
     is_group: bool = False
-    gauge: float | None = None
 
 
 @dataclass(frozen=True)
@@ -315,21 +305,6 @@ def _column_widths(kind: str, count: int) -> list[int]:
     return widths
 
 
-def _parse_gauge(card_kind: str, row: tuple[str, ...]) -> float | None:
-    if card_kind != "riven_analyse" or len(row) <= 3:
-        return None
-    diff_text = row[3].strip()
-    if diff_text == "均值":
-        return 0.0
-    if not diff_text.endswith("%"):
-        return None
-    try:
-        value = float(diff_text[:-1].replace("+", ""))
-    except ValueError:
-        return None
-    return max(-1.0, min(1.0, value / 12.0))
-
-
 def _build_row(card: Card, row: tuple[str, ...], widths: list[int], fonts: _Fonts) -> _Row:
     if row and row[0].startswith("§"):
         return _Row([[row[0].lstrip("§").strip()]], 48, is_group=True)
@@ -341,10 +316,9 @@ def _build_row(card: Card, row: tuple[str, ...], widths: list[int], fonts: _Font
         )
         for index, (text, width) in enumerate(zip(row, widths, strict=True))
     ]
-    gauge = _parse_gauge(card.kind, row)
-    minimum = 84 if gauge is not None else (90 if card.kind == "cycles" else 68)
-    row_height = max(minimum, max(map(len, cells)) * 38 + (36 if gauge is not None else 28))
-    return _Row(cells, row_height, gauge=gauge)
+    minimum = 90 if card.kind == "cycles" else 68
+    row_height = max(minimum, max(map(len, cells)) * 38 + 28)
+    return _Row(cells, row_height)
 
 
 def _prepare(card: Card, fonts: _Fonts) -> _Layout:
@@ -436,9 +410,6 @@ def _header(image: Image.Image, layout: _Layout, fonts: _Fonts) -> None:
 
 
 def _cell_style(kind: str, index: int, text: str) -> tuple[str, str]:
-    if kind == "riven_analyse" and index == 3:
-        color = RED if text.startswith("-") else (GREEN if text.startswith("+") else MUTED)
-        return "pill", color
     if index in _PILL_COLS.get(kind, set()):
         for prefix, color in _FACTION_PREFIX_COLORS:
             if text.startswith(prefix):
@@ -451,28 +422,11 @@ def _cell_style(kind: str, index: int, text: str) -> tuple[str, str]:
     return "text", BLUE if index == 0 or kind == "candidates" else INK
 
 
-def _draw_riven_gauge(
-    draw: ImageDraw.ImageDraw,
-    bounds: tuple[int, int, int, int],
-    offset: float,
-) -> None:
-    x, y, width, height = bounds
-    cx = x + width // 2
-    gy = y + height - 15
-    half = min(56, max(28, width // 2 - 22))
-    draw.line((cx - half, gy, cx + half, gy), fill=LINE, width=3)
-    draw.line((cx, gy - 5, cx, gy + 5), fill=MUTED, width=2)
-    dx = int(offset * (half - 4))
-    dot_color = GREEN if offset > 0 else (RED if offset < 0 else MUTED)
-    draw.ellipse((cx + dx - 5, gy - 5, cx + dx + 5, gy + 5), fill=dot_color)
-
-
 @dataclass(frozen=True)
 class _CellOptions:
     role: str
     color: str
     left: bool
-    gauge: float | None = None
 
 
 def _draw_cell(
@@ -483,13 +437,13 @@ def _draw_cell(
     options: _CellOptions,
 ) -> None:
     x, y, width, height = bounds
-    role, color, left, gauge = options.role, options.color, options.left, options.gauge
+    role, color, left = options.role, options.color, options.left
     font = fonts.emphasis if role == "number" else fonts.body
     if role == "pill" and len(lines) == 1:
         text = lines[0]
         pill_width = min(width - 28, int(fonts.small.getlength(text)) + 36)
         cx = x + width // 2
-        cy = y + (height - 16 if gauge is not None else height) // 2
+        cy = y + height // 2
         draw.rounded_rectangle(
             (cx - pill_width // 2, cy - 18, cx + pill_width // 2, cy + 18),
             radius=18,
@@ -498,8 +452,6 @@ def _draw_cell(
             width=1,
         )
         draw.text((cx, cy), text, font=fonts.small, fill=color, anchor="mm")
-        if gauge is not None:
-            _draw_riven_gauge(draw, bounds, gauge)
         return
     top = y + (height - len(lines) * 38) // 2 + 4
     for line in lines:
@@ -575,7 +527,6 @@ def _table(image: Image.Image, card: Card, layout: _Layout, fonts: _Fonts) -> in
                         role,
                         color,
                         _left_aligned(card.kind, index),
-                        row.gauge if index == 3 else None,
                     ),
                 )
                 x += width

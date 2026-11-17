@@ -58,15 +58,6 @@ async def _run_phase_d_smoke(plugin: Any, set_current: Any) -> None:
     assert (await plugin.handle_sister(matched_groups={"query": "典客"}, stream_id="local-smoke"))[
         0
     ]
-    set_current("riven-analyse-help")
-    assert (await plugin.handle_wf(matched_groups={"args": "紫卡分析"}, stream_id="local-smoke"))[0]
-    set_current("riven-analyse")
-    assert (
-        await plugin.handle_wf(
-            matched_groups={"args": "紫卡分析 托里德 +180% 暴击几率 +140% 暴击伤害 -45% 变焦"},
-            stream_id="local-smoke",
-        )
-    )[0]
     for key, args in (
         ("help", "帮助"),
         ("varzia", "瓦奇娅"),

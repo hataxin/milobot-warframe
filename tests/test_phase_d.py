@@ -1,4 +1,4 @@
-"""Unit tests for Phase D: ducats, auctions, whispers, and pure-Python Riven analysis."""
+"""Unit tests for Phase D: ducats, auctions, whispers, and Riven R8 Omega deviation."""
 
 from __future__ import annotations
 
@@ -9,22 +9,17 @@ import pytest
 from milo_core.auctions import (
     build_lich_sister_card,
     build_riven_auctions_card,
+    compute_diff,
+    compute_low_high,
     extract_candidate_choice,
     filter_online_auctions,
     resolve_stat_filters,
     split_riven_args,
 )
-from milo_core.dictionary import RivenStatInfo, RivenTrendEntry, WeaponMeta
+from milo_core.dictionary import RivenStatInfo
 from milo_core.ducats import build_ducats_card
 from milo_core.errors import QueryError
 from milo_core.market import Item, Order
-from milo_core.riven_analyse import (
-    build_riven_analyse_card,
-    build_riven_analyse_help_card,
-    compute_diff,
-    compute_low_high,
-    dot_from_omega,
-)
 from milo_core.whisper import (
     WhisperEntry,
     WhisperStore,
@@ -244,47 +239,12 @@ def test_whisper_templates_and_store_isolation(monkeypatch: pytest.MonkeyPatch) 
         store.reply_for("s1", "u1", "1")
 
 
-def test_riven_analyse_math_and_zero_ocr_dependency() -> None:
-    assert dot_from_omega(0.55) == "●○○○○"
-    assert dot_from_omega(1.30) == "●●●●●"
-
+def test_riven_omega_bounds_and_zero_ocr_dependency() -> None:
     low, high = compute_low_high(150.0, 1.3, 3, has_curse=True, is_curse=False)
     assert (low, high) == pytest.approx((217.1813, 265.4438), abs=0.01)
     assert compute_diff("暴击几率", 265.4438, (low, high), is_mult=False) == "+10.0%"
     assert compute_diff("后坐力", -80.0, (-90.0, -70.0), is_mult=False) == "0.0%"
     assert compute_diff("对Infested伤害", 1.50, (35.0, 65.0), is_mult=True) == "0.0%"
-
-    weapons = [
-        WeaponMeta("/Lotus/Torid", "托里德", "Torid", "LongGuns", 1.30, "Torid"),
-        WeaponMeta("/Lotus/Cronus", "克洛诺斯", "Cronus", "Melee", 1.45, "Cronus"),
-    ]
-    trends = {
-        "暴击几率": RivenTrendEntry("暴击几率", 150.0, 90.0, 150.0, 180.0, 100.0),
-        "对Grineer伤害": RivenTrendEntry("对Grineer伤害", 45.0, 45.0, 45.0, 45.0, 45.0),
-        "后坐力": RivenTrendEntry("后坐力", -90.0, -90.0, -90.0, 0.0, -90.0),
-    }
-    card = build_riven_analyse_card(
-        "托里德 +180% 暴击几率 x1.52 对Grineer伤害 +85% 后坐力",
-        weapons,
-        trends,
-        {},
-    )
-    assert card.kind == "riven_analyse"
-    assert "含负面" in card.subtitle
-    assert "x1.52" in card.rows[1][1]
-    assert card.rows[2][2].startswith("52.1%")
-
-    melee_card = build_riven_analyse_card(
-        "克洛诺斯 暴击几率+250%, 暴击几率+200%", weapons, trends, {}
-    )
-    assert "近战" in melee_card.highlight
-    assert len(melee_card.rows) == 2
-
-    help_card = build_riven_analyse_help_card()
-    assert help_card.kind == "riven_analyse_help"
-    assert "暂未实现 OCR" in help_card.text()
-    with pytest.raises(QueryError):
-        build_riven_analyse_card("托里德 -40% 暴击几率 +180% 暴击几率", weapons, trends, {})
 
     milo_core_dir = Path(__file__).resolve().parents[1] / "milo_core"
     for py_file in milo_core_dir.glob("*.py"):

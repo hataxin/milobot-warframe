@@ -52,7 +52,7 @@ async def test_sdk_discovery_and_status_do_not_require_network(
     assert calls[-1]["args"]["stream_id"] == "chat-a"
     assert "本地物品索引" in calls[-1]["args"]["text"]
     assert "本会话订阅：0 条" in calls[-1]["args"]["text"]
-    assert "Milo bot · Warframe 助手 1.0.0" in calls[-1]["args"]["text"]
+    assert "Milo bot · Warframe 助手 1.0.1" in calls[-1]["args"]["text"]
     assert "nyx" not in calls[-1]["args"]["text"].casefold()
     assert "maibot" not in calls[-1]["args"]["text"].casefold()
     help_res = await plugin.handle_wf(matched_groups={"args": "帮助"}, stream_id="chat-a")
@@ -709,7 +709,7 @@ def _phase_d_handler(request: httpx.Request) -> httpx.Response:
     return httpx.Response(404)
 
 
-async def test_phase_d_ducats_and_riven_analyse_e2e(
+async def test_phase_d_ducats_and_riven_analyse_placeholder_e2e(
     loaded_plugin: tuple[Any, list[dict[str, Any]]],
 ) -> None:
     plugin, calls = loaded_plugin
@@ -724,19 +724,15 @@ async def test_phase_d_ducats_and_riven_analyse_e2e(
     assert ok_ducat and "杜卡德金垃圾排行" in calls[-1]["args"]["text"]
     assert "Volt Prime 头部" in calls[-1]["args"]["text"]
 
-    ok_bad, _, _ = await plugin.handle_wf(
+    ok_placeholder, _, _ = await plugin.handle_wf(
         matched_groups={"args": "紫卡分析 托里德 +180% 暴击几率"},
         stream_id="s1",
         user_id="u1",
     )
-    assert not ok_bad and "2～4 条" in calls[-1]["args"]["text"]
+    assert ok_placeholder and calls[-1]["args"]["text"] == "暂未添加紫卡分析功能。"
 
-    ok_multiline, _, _ = await plugin.handle_wf(
-        matched_groups={"args": "紫卡分析 托里德\n+180% 暴击几率\n+195% 暴击几率"},
-        stream_id="s1",
-        user_id="u1",
-    )
-    assert ok_multiline and "托里德 · 紫卡倾向分析" in calls[-1]["args"]["text"]
+    tool_res = await plugin.handle_world_tool(topic="紫卡分析", stream_id="s1")
+    assert tool_res["content"] == "暂未添加紫卡分析功能。"
 
 
 async def test_phase_d_candidates_and_whispers_isolated_e2e(

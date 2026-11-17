@@ -36,8 +36,6 @@ CardKind = Literal[
     "ducats",
     "riven",
     "lich_sister",
-    "riven_analyse",
-    "riven_analyse_help",
     "relic_value",
     "translate",
     "fusion",

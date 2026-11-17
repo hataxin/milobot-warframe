@@ -89,8 +89,8 @@ def test_command_flags_and_pagination() -> None:
     assert f2.cleaned == "托里德"
     assert f2.page == 3
 
-    f3 = parse_command_flags("紫卡分析 托里德 +180% 暴击 -2", allow_page=False)
-    assert f3.cleaned == "紫卡分析 托里德 +180% 暴击 -2"
+    f3 = parse_command_flags("托里德 +180% 暴击 -2", allow_page=False)
+    assert f3.cleaned == "托里德 +180% 暴击 -2"
     assert f3.page == 1
 
     sliced, page, total = paginate(list(range(1, 20)), 2, 8)

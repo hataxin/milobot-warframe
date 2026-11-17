@@ -8,7 +8,6 @@ sys.path.insert(0, str(ROOT))
 
 from milo_core.card_model import Card  # noqa: E402
 from milo_core.render import render_card  # noqa: E402
-from milo_core.riven_analyse import build_riven_analyse_help_card  # noqa: E402
 
 
 def main() -> None:
@@ -122,19 +121,6 @@ def main() -> None:
             columns=("序号", "元素 / 加成", "价格 / 白金", "卖家", "状态"),
             kind="lich_sister",
         ),
-        "riven-analyse": Card(
-            "托里德 · 紫卡倾向分析",
-            [
-                ("暴击几率", "195%", "175.4% ～ 214.4%", "+0.1%"),
-                ("暴击伤害", "168%", "140.3% ～ 171.5%", "+7.8%"),
-                ("变焦", "-45%", "-56.2% ～ -46.0%", "-12.0%"),
-            ],
-            "国际服 PC · 3 词条（含负面）",
-            columns=("词条", "当前数值", "理论区间", "中位偏差"),
-            kind="riven_analyse",
-            highlight="武器类型：步枪 · 倾向：●●●●● (1.30)",
-        ),
-        "riven-analyse-help": build_riven_analyse_help_card(),
         "fissures-v060": Card(
             "虚空裂隙",
             [

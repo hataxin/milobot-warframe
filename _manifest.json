@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
   "id": "github.hataxin.milobot-warframe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Milo bot · Warframe 助手",
-  "description": "面向 MaiBot（麦麦）的《星际战甲》（Warframe）国际服 PC 助手插件，为麦麦提供世界状态与时效总览图文卡片、科研/瓦奇娅/仲裁/开核桃、中英翻译与紫卡/玄骸效率工具、warframe.market 与拍卖行查价、私聊指令生成、事件订阅推送及个人铸造提醒能力（同时支持 / 指令与 @Tool 自然语言调用）。",
+  "description": "面向 MaiBot（麦麦）的 Warframe 国际服 PC 助手插件，提供世界状态图文卡片、科研/瓦奇娅/仲裁/开核桃、翻译/融合/升级计算、市场与紫卡/玄骸拍卖查价、私聊生成、订阅推送与个人铸造提醒（支持 / 指令与 @Tool，暂未添加紫卡分析）。",
   "author": {
     "name": "hataxin",
     "url": "https://github.com/hataxin/milobot-warframe"
@@ -15,7 +15,7 @@
     "issues": "https://github.com/hataxin/milobot-warframe/issues"
   },
   "license": "AGPL-3.0",
-  "host_application": { "min_version": "1.3.19", "max_version": "1.3.99" },
+  "host_application": { "min_version": "1.3.19", "max_version": "1.4.99" },
   "sdk": { "min_version": "2.21.0", "max_version": "2.21.99" },
   "dependencies": [
     {
