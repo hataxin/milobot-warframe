@@ -491,7 +491,6 @@ class MiloBotPlugin(MaiBotPlugin):
         **kwargs: Any,
     ) -> dict[str, str]:
         """Answer natural-language world state and tool calculator questions cleanly."""
-        del kwargs
         try:
             service = self._get_service()
             flags = parse_command_flags(keyword)
@@ -505,7 +504,7 @@ class MiloBotPlugin(MaiBotPlugin):
                     "content": await self._status_text(service, stream_id),
                 }
             if key in {"铸造提醒", "铸造列表", "取消铸造"}:
-                reply = await self._tool_foundry(key, cleaned_kw, stream_id)
+                reply = await self._tool_foundry(key, cleaned_kw, stream_id, kwargs)
                 return {"name": "warframe_world_query", "content": reply}
             card = await service.resolve_world_card(topic, keyword=cleaned_kw, page=flags.page)
             if card is None:
@@ -528,15 +527,20 @@ class MiloBotPlugin(MaiBotPlugin):
                 "content": "世界状态查询失败，请稍后重试或查看插件日志。",
             }
 
-    async def _tool_foundry(self, key: str, cleaned_kw: str, stream_id: str) -> str:
-        sid = stream_id.strip() or "_tool_default"
+    async def _tool_foundry(
+        self, key: str, cleaned_kw: str, stream_id: str, kwargs: dict[str, Any]
+    ) -> str:
+        sid = _resolve_tool_foundry_scope(stream_id, kwargs)
+        uid = _extract_user_id(kwargs)
         if key == "铸造列表":
             if self._foundry is None:
                 raise QueryError("铸造提醒存储尚未初始化，请稍后重试。")
             items = await asyncio.to_thread(self._foundry.list_for_stream, sid)
             return build_foundry_list_card(items, time.time()).text()
         if key == "铸造提醒":
-            return await self._foundry_add_action(sid, cleaned_kw)
+            return await self._foundry_add_action(
+                sid, cleaned_kw, user_id="" if uid == "_anonymous" else uid
+            )
         return await self._foundry_cancel_action(sid, cleaned_kw)
 
     @Tool(
@@ -863,6 +867,22 @@ def _merge_riven_tail(base: RivenQuery, tail: str) -> RivenQuery:
         parsed.polarity or base.polarity,
         parsed.stat_count or base.stat_count,
         parsed.max_price if parsed.max_price is not None else base.max_price,
+    )
+
+
+def _resolve_tool_foundry_scope(stream_id: str, kwargs: dict[str, Any]) -> str:
+    candidates = [
+        stream_id,
+        *(kwargs.get(k) for k in ("stream_id", "chat_id", "session_id", "group_id")),
+    ]
+    for candidate in candidates:
+        if candidate is not None and str(candidate).strip():
+            return str(candidate).strip()
+    uid = _extract_user_id(kwargs)
+    if uid != "_anonymous":
+        return f"user:{uid}"
+    raise QueryError(
+        "缺少当前会话或调用者标识，请直接在聊天中使用 /铸造提醒、/铸造列表 或 /取消铸造。"
     )
 
 

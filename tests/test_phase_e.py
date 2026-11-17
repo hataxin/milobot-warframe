@@ -544,3 +544,12 @@ async def test_plugin_e2e_v060_flags_tools_and_foundry(
     delivered = await plugin.poll_subscriptions_once()
     assert delivered == 1
     assert "Forma" in calls[-1]["args"]["text"]
+
+    # Tool foundry without stream_id isolates by caller identity or rejects cleanly.
+    anon_res = await plugin.handle_world_tool(topic="铸造提醒", keyword="Volt 1h")
+    assert "缺少当前会话或调用者标识" in anon_res["content"]
+
+    u1_add = await plugin.handle_world_tool(topic="铸造提醒", keyword="Nova 1h", user_id="u1")
+    u2_list = await plugin.handle_world_tool(topic="铸造列表", user_id="u2")
+    assert "已添加铸造提醒" in u1_add["content"]
+    assert "Nova" not in u2_list["content"]
