@@ -52,7 +52,7 @@ async def test_sdk_discovery_and_status_do_not_require_network(
     assert calls[-1]["args"]["stream_id"] == "chat-a"
     assert "本地物品索引" in calls[-1]["args"]["text"]
     assert "本会话订阅：0 条" in calls[-1]["args"]["text"]
-    assert "Milo bot · Warframe 助手 1.0.1" in calls[-1]["args"]["text"]
+    assert "Milo bot · Warframe 助手 1.0.0" in calls[-1]["args"]["text"]
     assert "nyx" not in calls[-1]["args"]["text"].casefold()
     assert "maibot" not in calls[-1]["args"]["text"].casefold()
     help_res = await plugin.handle_wf(matched_groups={"args": "帮助"}, stream_id="chat-a")

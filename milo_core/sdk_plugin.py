@@ -44,7 +44,7 @@ from .subscription import (
 from .whisper import WhisperStore
 from .worldstate import build_help_card
 
-VERSION = "1.0.1"
+VERSION = "1.0.0"
 
 
 def _build_direct_command_pattern() -> str:
