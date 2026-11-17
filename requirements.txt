@@ -1,0 +1,4 @@
+httpx==0.28.1
+maibot-plugin-sdk==2.21.0
+pillow==13.0.0
+

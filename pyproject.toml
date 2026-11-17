@@ -1,0 +1,59 @@
+[project]
+name = "milo-bot-warframe"
+version = "1.0.0"
+description = "Milo bot Warframe assistant plugin"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "httpx==0.28.1",
+    "maibot-plugin-sdk==2.21.0",
+    "pillow==13.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pip-audit==2.10.1",
+    "pytest==9.2.0",
+    "pytest-asyncio==1.4.1.post1",
+    "ruff==0.17.4",
+    "ty==0.0.99",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]
+filterwarnings = ["error"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["outputs", "references"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "C90", "D", "PLR0912", "PLR0913", "PLR0915"]
+ignore = ["D105", "D107"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.pylint]
+max-args = 6
+max-statements = 55
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
+[tool.ty.src]
+exclude = ["outputs/**", "references/**"]
+
+[tool.ty.rules]
+all = "error"
+
+

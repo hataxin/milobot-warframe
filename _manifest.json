@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "id": "local.milobot-warframe",
+  "version": "1.0.0",
+  "name": "Milo bot · Warframe 助手",
+  "description": "国际服 PC 世界状态、时效总览、仲裁/开核桃、翻译/融合/升级工具、WM/拍卖行、私聊、铸造提醒与订阅推送。",
+  "author": {
+    "name": "hataxin",
+    "url": "https://github.com/hataxin/milobot-warframe"
+  },
+  "urls": { "repository": "https://github.com/hataxin/milobot-warframe" },
+  "license": "AGPL-3.0",
+  "host_application": { "min_version": "1.3.19", "max_version": "1.3.99" },
+  "sdk": { "min_version": "2.21.0", "max_version": "2.21.99" },
+  "capabilities": ["send.text", "send.image"],
+  "i18n": { "default_locale": "zh-CN" }
+}
+
