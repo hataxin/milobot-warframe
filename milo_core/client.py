@@ -1,6 +1,7 @@
 """Instance-owned HTTP access, cache validation and market request pacing."""
 
 import asyncio
+import logging
 import time
 from collections.abc import Awaitable, Callable
 from typing import Any, Literal
@@ -10,6 +11,7 @@ import httpx
 from .cache import CachedResponse, ResponseCache
 from .errors import QueryError
 
+_LOGGER = logging.getLogger("plugin.warframe.client")
 PayloadKind = Literal["worldstate", "items", "orders", "alias", "detail"]
 MARKET_URL = "https://api.warframe.market/v2"
 ITEM_STATS_URL = "https://api.warframe.market/v1/items/{slug}/statistics"
@@ -168,9 +170,15 @@ class DataClient:
             response.raise_for_status()
             return response
         except httpx.TimeoutException as exc:
-            raise QueryError("数据源请求超时，请稍后重试或检查 Milo bot 的网络代理。") from exc
+            _LOGGER.warning("数据源请求超时: url=%s err=%s", url, type(exc).__name__)
+            raise QueryError(
+                "数据源请求超时，请检查网络代理（可在插件配置中设置 proxy_url）或稍后重试。"
+            ) from exc
         except httpx.HTTPError as exc:
-            raise QueryError("无法访问数据源，请稍后重试或检查 Milo bot 的网络代理。") from exc
+            _LOGGER.warning("无法访问数据源: url=%s err=%s", url, exc)
+            raise QueryError(
+                "无法访问数据源，请检查网络代理（可在插件配置中设置 proxy_url）或稍后重试。"
+            ) from exc
 
     async def _request(
         self,

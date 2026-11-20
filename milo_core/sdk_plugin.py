@@ -166,23 +166,41 @@ class MiloBotPlugin(MaiBotPlugin):
         self._subscriptions = SubscriptionStore(cache.path)
         self._foundry = FoundryStore(cache.path)
         self._poll_lock = asyncio.Lock()
-        http = httpx.AsyncClient(
-            timeout=self.settings.timeout_seconds,
-            follow_redirects=True,
-            headers={
-                "User-Agent": f"MiloBot-Warframe/{VERSION}",
-                "Accept": "application/json",
-                "Language": "zh-hans",
-                "Platform": "pc",
-                "Crossplay": "true",
-            },
-        )
+        http = self._build_http_client()
         self._service = WarframeService(DataClient(cache, http))
         cached = await asyncio.to_thread(cache.get, MARKET_URL + "/items")
         if cached is not None:
             self._service.item_count = catalogue_size(cached.body)
         self._start_subscription_loop()
         self.ctx.logger.info("Milo bot Warframe 插件 %s 已加载，数据按需获取", VERSION)
+
+    def _build_http_client(self) -> httpx.AsyncClient:
+        proxy = _normalize_proxy_url(self.settings.proxy_url)
+        headers = {
+            "User-Agent": f"MiloBot-Warframe/{VERSION}",
+            "Accept": "application/json",
+            "Language": "zh-hans",
+            "Platform": "pc",
+            "Crossplay": "true",
+        }
+        try:
+            return httpx.AsyncClient(
+                timeout=self.settings.timeout_seconds,
+                proxy=proxy,
+                follow_redirects=True,
+                headers=headers,
+            )
+        except (ValueError, ImportError) as exc:
+            self.ctx.logger.warning(
+                "网络代理配置 proxy_url=%r 无效或缺少协议依赖，已回退系统/环境代理：%s",
+                proxy,
+                exc,
+            )
+            return httpx.AsyncClient(
+                timeout=self.settings.timeout_seconds,
+                follow_redirects=True,
+                headers=headers,
+            )
 
     @override
     async def on_unload(self) -> None:
@@ -920,6 +938,13 @@ def _pick_tool_item_name(item_name: str, kwargs: dict[str, Any]) -> str:
             if text:
                 return str(text)
     return ""
+
+
+def _normalize_proxy_url(raw: str) -> str | None:
+    cleaned = raw.strip()
+    if not cleaned:
+        return None
+    return cleaned if "://" in cleaned else f"http://{cleaned}"
 
 
 def _coerce_bool(value: Any) -> bool:

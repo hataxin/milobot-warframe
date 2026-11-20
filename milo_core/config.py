@@ -48,6 +48,11 @@ class MiloConfig(PluginConfigBase):
         description="单次数据源请求超时秒数",
         json_schema_extra={"placeholder": "3 ~ 20（秒）", "group": "network"},
     )
+    proxy_url: str = Field(
+        default="",
+        description="可选 HTTP/HTTPS 代理地址（如 http://127.0.0.1:7890；留空使用系统/环境代理）",
+        json_schema_extra={"placeholder": "http://127.0.0.1:7890", "group": "network"},
+    )
     subscription_enabled: bool = Field(
         default=True,
         description="启用后台订阅轮询推送",

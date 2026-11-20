@@ -809,3 +809,20 @@ def test_manifest_and_config_schema_follow_maibot_spec() -> None:
     )
     assert schema["sections"]["plugin"]["title"] == "插件版本"
     assert schema["sections"]["general"]["fields"]["font_path"]["placeholder"]
+    assert schema["sections"]["general"]["fields"]["proxy_url"]["placeholder"]
+
+
+async def test_proxy_url_config_and_fallback(
+    loaded_plugin: tuple[Any, list[dict[str, Any]]],
+) -> None:
+    plugin, _ = loaded_plugin
+    cfg = plugin.get_plugin_config_data()
+    cfg["proxy_url"] = "127.0.0.1:7890"
+    await plugin.on_config_update("self", cfg, "0.1.0")
+    mounts = plugin._service.client.http._mounts
+    assert any(transport is not None for transport in mounts.values())
+
+    bad_cfg = dict(cfg)
+    bad_cfg["proxy_url"] = "ftp://127.0.0.1:7890"
+    await plugin.on_config_update("self", bad_cfg, "0.1.0")
+    assert plugin._service is not None

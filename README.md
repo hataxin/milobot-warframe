@@ -39,6 +39,7 @@
 | `output_mode` | `image` | `image` 图片或 `text` 文字 |
 | `font_path` | 空 | 指定字体路径（留空使用内置 MiSans） |
 | `timeout_seconds` | `10.0` | 请求超时秒数（3～20） |
+| `proxy_url` | 空 | 可选 HTTP/HTTPS 代理（如 `http://127.0.0.1:7890`；留空走系统代理） |
 | `subscription_enabled` | `true` | 启用后台订阅轮询推送 |
 | `subscription_interval_seconds` | `120` | 轮询间隔秒数（60～3600） |
 
